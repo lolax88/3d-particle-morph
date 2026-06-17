@@ -3,563 +3,837 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Particle Morph — LIX Studio</title>
+<title>LIX STUDIO — Design Studio & Creative Agency</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+*{margin:0;padding:0;box-sizing:border-box}
 
-  body {
-    background: #000;
-    overflow: hidden;
-    font-family: 'Inter', sans-serif;
-    color: #fff;
-    cursor: crosshair;
-  }
+:root{
+  --bg:#0a0a0a;
+  --card:rgba(255,255,255,0.03);
+  --border:rgba(255,255,255,0.06);
+  --violet:#8b5cf6;
+  --cyan:#06b6d4;
+  --pink:#f43f5e;
+  --text:#e5e5e5;
+  --text-dim:rgba(255,255,255,0.4);
+}
 
-  canvas { display: block; }
+html{scroll-behavior:smooth}
 
-  .overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 10;
-  }
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  overflow-x:hidden;
+  cursor:default;
+}
 
-  .title {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    z-index: 20;
-    pointer-events: none;
-    opacity: 0;
-    animation: fadeIn 2s ease 1s forwards;
-  }
+/* Grid overlay */
+body::before{
+  content:'';
+  position:fixed;
+  top:0;left:0;
+  width:100%;height:100%;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;
+  z-index:0;
+}
 
-  .title h1 {
-    font-size: clamp(2rem, 6vw, 5rem);
-    font-weight: 900;
-    letter-spacing: -0.03em;
-    background: linear-gradient(135deg, #fff 0%, #8b5cf6 50%, #06b6d4 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: none;
-    line-height: 1.1;
-  }
+/* Cursor glow */
+.cursor-glow{
+  position:fixed;
+  width:400px;height:400px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
+  pointer-events:none;
+  transform:translate(-50%,-50%);
+  z-index:1;
+  transition:opacity 0.3s;
+}
 
-  .title p {
-    font-size: clamp(0.8rem, 1.5vw, 1.2rem);
-    font-weight: 300;
-    color: rgba(255,255,255,0.5);
-    margin-top: 1rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-  }
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;width:100%;
+  padding:1.5rem 3rem;
+  display:flex;justify-content:space-between;align-items:center;
+  z-index:100;
+  backdrop-filter:blur(20px);
+  background:rgba(10,10,10,0.6);
+  border-bottom:1px solid var(--border);
+  transition:all 0.3s;
+}
 
-  .shape-label {
-    position: fixed;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 20;
-    pointer-events: none;
-    font-size: 0.75rem;
-    font-weight: 300;
-    color: rgba(255,255,255,0.3);
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    opacity: 0;
-    animation: fadeIn 1s ease 2s forwards;
-  }
+.nav-logo{
+  font-weight:800;font-size:1.2rem;
+  background:linear-gradient(135deg,var(--violet),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-0.02em;
+}
 
-  .controls {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    opacity: 0;
-    animation: fadeIn 1s ease 2.5s forwards;
-  }
+.nav-links{display:flex;gap:2.5rem;list-style:none}
+.nav-links a{
+  color:var(--text-dim);text-decoration:none;font-size:0.85rem;
+  font-weight:500;letter-spacing:0.02em;
+  transition:color 0.3s;
+}
+.nav-links a:hover{color:#fff}
 
-  .controls button {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.6);
-    padding: 0.5rem 1rem;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    border-radius: 4px;
-    transition: all 0.3s ease;
-    pointer-events: all;
-  }
+.nav-cta{
+  background:linear-gradient(135deg,var(--violet),#6d28d9);
+  color:#fff;border:none;padding:0.6rem 1.5rem;
+  border-radius:8px;font-size:0.8rem;font-weight:600;
+  cursor:pointer;transition:all 0.3s;
+  font-family:inherit;
+}
+.nav-cta:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(139,92,246,0.3)}
 
-  .controls button:hover {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: rgba(139, 92, 246, 0.5);
-    color: #fff;
-  }
+/* ─── HERO ─── */
+.hero{
+  position:relative;
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  text-align:center;
+  z-index:2;
+}
 
-  .controls button.active {
-    background: rgba(139, 92, 246, 0.3);
-    border-color: #8b5cf6;
-    color: #fff;
-  }
+.hero-canvas{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  z-index:-1;
+}
 
-  .fps {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 20;
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.2);
-    font-weight: 300;
-    letter-spacing: 0.1em;
-    opacity: 0;
-    animation: fadeIn 1s ease 3s forwards;
-  }
+.hero-content{position:relative;z-index:10;max-width:900px;padding:2rem}
 
-  .vignette {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%);
-    pointer-events: none;
-    z-index: 5;
-  }
+.hero-badge{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  padding:0.5rem 1.2rem;
+  border:1px solid rgba(139,92,246,0.3);
+  border-radius:100px;
+  font-size:0.75rem;font-weight:500;
+  color:var(--violet);
+  margin-bottom:2rem;
+  backdrop-filter:blur(10px);
+  background:rgba(139,92,246,0.05);
+  letter-spacing:0.05em;text-transform:uppercase;
+}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--violet);animation:pulse 2s infinite}
 
-  @keyframes fadeIn {
-    to { opacity: 1; }
-  }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.hero h1{
+  font-size:clamp(3rem,8vw,7rem);
+  font-weight:900;
+  line-height:0.95;
+  letter-spacing:-0.04em;
+  margin-bottom:1.5rem;
+}
+.hero h1 .gradient{
+  background:linear-gradient(135deg,#fff 0%,var(--violet) 40%,var(--cyan) 70%,var(--pink) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+.hero p{
+  font-size:clamp(1rem,1.5vw,1.25rem);
+  color:var(--text-dim);
+  max-width:550px;margin:0 auto 2.5rem;
+  line-height:1.7;font-weight:300;
+}
+
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+.btn-primary{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,var(--violet),#6d28d9);
+  color:#fff;border:none;padding:1rem 2.5rem;
+  border-radius:12px;font-size:1rem;font-weight:600;
+  cursor:pointer;transition:all 0.3s;
+  font-family:inherit;
+  transform-style:preserve-3d;
+  perspective:500px;
+}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(139,92,246,0.4)}
+.btn-primary:active{transform:translateY(1px) scale(0.98)}
+
+.btn-secondary{
+  background:transparent;
+  color:#fff;border:1px solid rgba(255,255,255,0.15);
+  padding:1rem 2.5rem;border-radius:12px;
+  font-size:1rem;font-weight:500;cursor:pointer;
+  transition:all 0.3s;font-family:inherit;
+  backdrop-filter:blur(10px);
+}
+.btn-secondary:hover{border-color:rgba(255,255,255,0.3);background:rgba(255,255,255,0.03)}
+
+/* Ripple */
+.ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,0.3);
+  transform:scale(0);
+  animation:ripple-anim 0.6s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes ripple-anim{to{transform:scale(4);opacity:0}}
+
+/* Particle burst */
+.burst-particle{
+  position:fixed;width:4px;height:4px;border-radius:50%;
+  pointer-events:none;z-index:9999;
+  animation:burst-fly 0.8s ease-out forwards;
+}
+@keyframes burst-fly{
+  0%{opacity:1;transform:translate(0,0) scale(1)}
+  100%{opacity:0;transform:translate(var(--bx),var(--by)) scale(0)}
+}
+
+/* ─── SECTIONS ─── */
+section{position:relative;z-index:2;padding:8rem 3rem}
+
+.section-label{
+  font-size:0.7rem;font-weight:600;
+  letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--violet);margin-bottom:1rem;
+}
+
+.section-title{
+  font-size:clamp(2rem,4vw,3.5rem);
+  font-weight:800;letter-spacing:-0.03em;
+  line-height:1.1;margin-bottom:1.5rem;
+}
+
+.section-desc{
+  color:var(--text-dim);font-size:1.05rem;
+  max-width:500px;line-height:1.7;font-weight:300;
+}
+
+/* Scroll reveal */
+.reveal{
+  opacity:0;transform:translateY(40px);
+  transition:all 0.8s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:0.1s}
+.reveal-delay-2{transition-delay:0.2s}
+.reveal-delay-3{transition-delay:0.3s}
+.reveal-delay-4{transition-delay:0.4s}
+
+/* ─── SERVICES ─── */
+.services-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;
+  max-width:1200px;margin:0 auto;
+}
+
+.service-card{
+  position:relative;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:2.5rem;
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+  transform-style:preserve-3d;
+  perspective:800px;
+  cursor:default;
+  overflow:hidden;
+}
+
+.service-card::before{
+  content:'';
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  background:radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(139,92,246,0.08) 0%, transparent 60%);
+  opacity:0;transition:opacity 0.4s;
+  pointer-events:none;
+  border-radius:20px;
+}
+.service-card:hover::before{opacity:1}
+.service-card:hover{border-color:rgba(139,92,246,0.2)}
+
+.service-icon{
+  width:56px;height:56px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;
+  background:rgba(139,92,246,0.1);
+  border-radius:16px;margin-bottom:1.5rem;
+  border:1px solid rgba(139,92,246,0.15);
+}
+
+.service-card h3{
+  font-size:1.3rem;font-weight:700;
+  margin-bottom:0.8rem;letter-spacing:-0.02em;
+}
+
+.service-card p{
+  color:var(--text-dim);font-size:0.9rem;
+  line-height:1.7;font-weight:300;
+}
+
+/* ─── PORTFOLIO ─── */
+.portfolio-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+  gap:1.5rem;
+  max-width:1200px;margin:0 auto;
+}
+
+.portfolio-card{
+  position:relative;
+  border-radius:20px;overflow:hidden;
+  aspect-ratio:4/3;
+  cursor:pointer;
+  transform-style:preserve-3d;
+  perspective:800px;
+  transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+
+.portfolio-card .card-bg{
+  width:100%;height:100%;
+  transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;font-weight:700;
+  position:relative;
+}
+
+.portfolio-card:hover .card-bg{transform:scale(1.05)}
+
+.portfolio-card .card-overlay{
+  position:absolute;bottom:0;left:0;width:100%;
+  padding:2rem;
+  background:linear-gradient(transparent,rgba(0,0,0,0.8));
+  transform:translateY(20px);opacity:0;
+  transition:all 0.4s ease;
+}
+.portfolio-card:hover .card-overlay{transform:translateY(0);opacity:1}
+
+.card-overlay h3{font-size:1.2rem;font-weight:700;margin-bottom:0.3rem}
+.card-overlay p{font-size:0.8rem;color:var(--text-dim)}
+
+/* ─── STATS ─── */
+.about-section{background:rgba(255,255,255,0.01)}
+
+.stats-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:2rem;max-width:1200px;margin:4rem auto 0;
+}
+
+.stat-item{text-align:center}
+.stat-number{
+  font-size:clamp(2.5rem,5vw,4rem);
+  font-weight:900;letter-spacing:-0.03em;
+  background:linear-gradient(135deg,var(--violet),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.stat-label{color:var(--text-dim);font-size:0.9rem;margin-top:0.5rem;font-weight:400}
+
+/* Floating shapes */
+.floating-shapes{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  overflow:hidden;pointer-events:none;
+}
+
+.float-shape{
+  position:absolute;
+  border:1px solid rgba(139,92,246,0.1);
+  animation:float-rotate linear infinite;
+  opacity:0.3;
+}
+
+@keyframes float-rotate{
+  0%{transform:translateY(0) rotate(0deg)}
+  50%{transform:translateY(-30px) rotate(180deg)}
+  100%{transform:translateY(0) rotate(360deg)}
+}
+
+/* ─── CONTACT ─── */
+.contact-section{
+  text-align:center;
+  padding:10rem 3rem;
+  position:relative;
+  overflow:hidden;
+}
+
+.contact-section::before{
+  content:'';
+  position:absolute;top:50%;left:50%;
+  width:600px;height:600px;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+.contact-section .section-title{margin:0 auto 1.5rem;max-width:600px}
+.contact-section .section-desc{margin:0 auto 3rem;max-width:500px;text-align:center}
+
+.cta-btn{
+  position:relative;overflow:hidden;
+  display:inline-flex;align-items:center;gap:0.8rem;
+  background:linear-gradient(135deg,var(--violet),#6d28d9);
+  color:#fff;border:none;
+  padding:1.2rem 3rem;
+  border-radius:16px;font-size:1.1rem;font-weight:700;
+  cursor:pointer;transition:all 0.3s;
+  font-family:inherit;
+  letter-spacing:-0.01em;
+}
+.cta-btn:hover{
+  transform:translateY(-4px) scale(1.02);
+  box-shadow:0 20px 60px rgba(139,92,246,0.4);
+}
+.cta-btn:active{transform:translateY(1px) scale(0.98)}
+
+/* ─── FOOTER ─── */
+footer{
+  padding:3rem;
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+  color:var(--text-dim);font-size:0.8rem;
+  position:relative;z-index:2;
+  flex-wrap:wrap;gap:1rem;
+}
+
+footer a{color:var(--text-dim);text-decoration:none;transition:color 0.3s}
+footer a:hover{color:#fff}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  section{padding:5rem 1.5rem}
+  .portfolio-grid{grid-template-columns:1fr}
+  .hero-btns{flex-direction:column;align-items:center}
+  footer{flex-direction:column;text-align:center}
+}
 </style>
 </head>
 <body>
 
-<div class="vignette"></div>
+<!-- Cursor glow -->
+<div class="cursor-glow" id="cursorGlow"></div>
 
-<div class="title">
-  <h1>LIX STUDIO</h1>
-  <p>3D Particle Morph Engine</p>
-</div>
+<!-- Nav -->
+<nav>
+  <div class="nav-logo">LIX STUDIO</div>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <button class="nav-cta" onclick="smoothScroll('#contact')">Let's Talk</button>
+</nav>
 
-<div class="shape-label" id="shapeLabel">● Hover to interact · Click to morph</div>
+<!-- Hero -->
+<section class="hero">
+  <canvas class="hero-canvas" id="heroCanvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge reveal">✦ Available for new projects</div>
+    <h1 class="reveal reveal-delay-1"><span class="gradient">LIX STUDIO</span></h1>
+    <p class="reveal reveal-delay-2">Design studio & creative agency. We craft digital experiences that move people — from brand identity to immersive 3D worlds.</p>
+    <div class="hero-btns reveal reveal-delay-3">
+      <button class="btn-primary" onclick="smoothScroll('#portfolio')">View Our Work</button>
+      <button class="btn-secondary" onclick="smoothScroll('#contact')">Get In Touch</button>
+    </div>
+  </div>
+</section>
 
-<div class="controls">
-  <button onclick="morphTo('torus')" id="btn-torus">Torus</button>
-  <button onclick="morphTo('sphere')" id="btn-sphere">Sphere</button>
-  <button onclick="morphTo('knot')" id="btn-knot">Knot</button>
-  <button onclick="morphTo('galaxy')" id="btn-galaxy">Galaxy</button>
-  <button onclick="morphTo('dna')" id="btn-dna">DNA</button>
-  <button onclick="toggleAutoRotate()" id="btn-auto">Auto: ON</button>
-</div>
+<!-- Services -->
+<section id="services">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="section-label reveal">What We Do</div>
+    <h2 class="section-title reveal reveal-delay-1">Services that<br>drive results</h2>
+    <p class="section-desc reveal reveal-delay-2">We blend strategy, design, and technology to create memorable digital experiences.</p>
+  </div>
+  <div class="services-grid" style="margin-top:3rem">
+    <div class="service-card reveal reveal-delay-1">
+      <div class="service-icon">🎨</div>
+      <h3>Brand Identity</h3>
+      <p>Logos, visual systems, and brand guidelines that make your business unforgettable. From concept to final deliverables.</p>
+    </div>
+    <div class="service-card reveal reveal-delay-2">
+      <div class="service-icon">💻</div>
+      <h3>Web Design</h3>
+      <p>Responsive websites that convert visitors into customers. Modern UI/UX with performance-first approach.</p>
+    </div>
+    <div class="service-card reveal reveal-delay-3">
+      <div class="service-icon">🎬</div>
+      <h3>Motion Design</h3>
+      <p>Animated content that captures attention. From social media reels to product explainers and brand videos.</p>
+    </div>
+    <div class="service-card reveal reveal-delay-4">
+      <div class="service-icon">🧊</div>
+      <h3>3D & Interactive</h3>
+      <p>Immersive 3D experiences and interactive installations. WebGL, Three.js, and cutting-edge web technologies.</p>
+    </div>
+  </div>
+</section>
 
-<div class="fps" id="fps">60 FPS</div>
+<!-- Portfolio -->
+<section id="portfolio">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="section-label reveal">Selected Work</div>
+    <h2 class="section-title reveal reveal-delay-1">Projects we're<br>proud of</h2>
+  </div>
+  <div class="portfolio-grid" style="margin-top:3rem">
+    <div class="portfolio-card reveal reveal-delay-1">
+      <div class="card-bg" style="background:linear-gradient(135deg,#1a1a2e,#16213e)">
+        <span style="color:rgba(255,255,255,0.15);font-size:4rem;font-weight:900">N</span>
+      </div>
+      <div class="card-overlay"><h3>NexaFlow</h3><p>SaaS Brand Identity</p></div>
+    </div>
+    <div class="portfolio-card reveal reveal-delay-2">
+      <div class="card-bg" style="background:linear-gradient(135deg,#2d1b3d,#1a0a2e)">
+        <span style="color:rgba(255,255,255,0.15);font-size:4rem;font-weight:900">V</span>
+      </div>
+      <div class="card-overlay"><h3>Voltix AI</h3><p>Tech Startup Branding</p></div>
+    </div>
+    <div class="portfolio-card reveal reveal-delay-2">
+      <div class="card-bg" style="background:linear-gradient(135deg,#0a2e1a,#1a3a2e)">
+        <span style="color:rgba(255,255,255,0.15);font-size:4rem;font-weight:900">K</span>
+      </div>
+      <div class="card-overlay"><h3>Kedai Nusantara</h3><p>Coffee Shop Brand</p></div>
+    </div>
+    <div class="portfolio-card reveal reveal-delay-3">
+      <div class="card-bg" style="background:linear-gradient(135deg,#2e1a1a,#3a1a2e)">
+        <span style="color:rgba(255,255,255,0.15);font-size:4rem;font-weight:900">P</span>
+      </div>
+      <div class="card-overlay"><h3>PITH</h3><p>Fashion Brand — Old Money</p></div>
+    </div>
+    <div class="portfolio-card reveal reveal-delay-3">
+      <div class="card-bg" style="background:linear-gradient(135deg,#1a2e2e,#0a1e2e)">
+        <span style="color:rgba(255,255,255,0.15);font-size:4rem;font-weight:900">C</span>
+      </div>
+      <div class="card-overlay"><h3>CloudSync</h3><p>Cloud Platform Brand</p></div>
+    </div>
+    <div class="portfolio-card reveal reveal-delay-4">
+      <div class="card-bg" style="background:linear-gradient(135deg,#2e2e1a,#2e1a0a)">
+        <span style="color:rgba(255,255,255,0.15);font-size:4rem;font-weight:900">S</span>
+      </div>
+      <div class="card-overlay"><h3>Senja Coffee</h3><p>Café Visual Identity</p></div>
+    </div>
+  </div>
+</section>
 
-<canvas id="c"></canvas>
+<!-- About / Stats -->
+<section id="about" class="about-section">
+  <div class="floating-shapes">
+    <div class="float-shape" style="width:80px;height:80px;top:15%;left:10%;border-radius:20px;animation-duration:12s"></div>
+    <div class="float-shape" style="width:60px;height:60px;top:60%;right:15%;border-radius:50%;animation-duration:15s;animation-delay:2s"></div>
+    <div class="float-shape" style="width:100px;height:100px;bottom:20%;left:25%;border-radius:30px;animation-duration:18s;animation-delay:4s"></div>
+  </div>
+  <div style="max-width:1200px;margin:0 auto;text-align:center">
+    <div class="section-label reveal">About Us</div>
+    <h2 class="section-title reveal reveal-delay-1">Designing the future,<br>one pixel at a time</h2>
+    <p class="section-desc reveal reveal-delay-2" style="margin:0 auto">We're a Bali-based design studio obsessed with crafting digital experiences that stand out. From startups to established brands, we bring ideas to life.</p>
+  </div>
+  <div class="stats-row">
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-number" data-target="50">0</div>
+      <div class="stat-label">Projects Completed</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-number" data-target="30">0</div>
+      <div class="stat-label">Happy Clients</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-3">
+      <div class="stat-number" data-target="5">0</div>
+      <div class="stat-label">Years Experience</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-4">
+      <div class="stat-number" data-target="15">0</div>
+      <div class="stat-label">Design Awards</div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="contact-section">
+  <div class="section-label reveal">Get In Touch</div>
+  <h2 class="section-title reveal reveal-delay-1">Ready to start<br>your next project?</h2>
+  <p class="section-desc reveal reveal-delay-2">Let's create something extraordinary together. Drop us a message and we'll get back to you within 24 hours.</p>
+  <button class="cta-btn reveal reveal-delay-3" id="ctaBtn">
+    <span>Start a Project</span>
+    <span>→</span>
+  </button>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div>© 2026 LIX STUDIO. All rights reserved.</div>
+  <div style="display:flex;gap:1.5rem">
+    <a href="#">Instagram</a>
+    <a href="#">Dribbble</a>
+    <a href="#">Twitter</a>
+    <a href="#">GitHub</a>
+  </div>
+</footer>
 
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
 
-// ─── Config ───
-const PARTICLE_COUNT = 12000;
-const MOUSE_FORCE = 0.15;
-const RETURN_FORCE = 0.008;
-const DAMPING = 0.92;
-const MORPH_SPEED = 0.03;
-const COLOR_SPEED = 0.0003;
-
-// ─── Setup ───
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+// ─── Three.js Hero Particles ───
+const canvas = document.getElementById('heroCanvas');
+const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.z = 5;
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.z = 4;
 
-const clock = new THREE.Clock();
-const mouse = new THREE.Vector2(9999, 9999);
-const mouse3D = new THREE.Vector3();
-const raycaster = new THREE.Raycaster();
-const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const mouse = new THREE.Vector2(0, 0);
+const targetMouse = new THREE.Vector2(0, 0);
 
-// ─── Particle System ───
-const geometry = new THREE.BufferGeometry();
-const positions = new Float32Array(PARTICLE_COUNT * 3);
-const targets = new Float32Array(PARTICLE_COUNT * 3);
-const velocities = new Float32Array(PARTICLE_COUNT * 3);
-const colors = new Float32Array(PARTICLE_COUNT * 3);
-const sizes = new Float32Array(PARTICLE_COUNT);
-const phases = new Float32Array(PARTICLE_COUNT);
+// Particles
+const COUNT = 2000;
+const geo = new THREE.BufferGeometry();
+const pos = new Float32Array(COUNT * 3);
+const col = new Float32Array(COUNT * 3);
+const sizes = new Float32Array(COUNT);
+const phases = new Float32Array(COUNT);
 
-// Color palettes
-const palettes = {
-  default: [
-    new THREE.Color('#8b5cf6'),
-    new THREE.Color('#06b6d4'),
-    new THREE.Color('#f43f5e'),
-    new THREE.Color('#10b981'),
-    new THREE.Color('#f59e0b'),
-  ],
-  neon: [
-    new THREE.Color('#ff006e'),
-    new THREE.Color('#8338ec'),
-    new THREE.Color('#3a86ff'),
-    new THREE.Color('#06d6a0'),
-    new THREE.Color('#ffd166'),
-  ]
-};
+const palette = [
+  new THREE.Color('#8b5cf6'),
+  new THREE.Color('#06b6d4'),
+  new THREE.Color('#f43f5e'),
+  new THREE.Color('#10b981'),
+];
 
-let currentPalette = palettes.default;
-let autoRotate = true;
-let currentShape = 'torus';
+for (let i = 0; i < COUNT; i++) {
+  // Distribute on sphere surface
+  const phi = Math.acos(1 - 2 * (i + 0.5) / COUNT);
+  const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+  const r = 1.8 + (Math.random() - 0.5) * 0.8;
+  pos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+  pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+  pos[i*3+2] = r * Math.cos(phi);
 
-// Initialize random positions
-for (let i = 0; i < PARTICLE_COUNT; i++) {
-  const i3 = i * 3;
-  positions[i3] = (Math.random() - 0.5) * 10;
-  positions[i3 + 1] = (Math.random() - 0.5) * 10;
-  positions[i3 + 2] = (Math.random() - 0.5) * 10;
-  velocities[i3] = 0;
-  velocities[i3 + 1] = 0;
-  velocities[i3 + 2] = 0;
-  sizes[i] = Math.random() * 2 + 0.5;
+  const c = palette[Math.floor(Math.random() * palette.length)];
+  col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+  sizes[i] = Math.random() * 3 + 1;
   phases[i] = Math.random() * Math.PI * 2;
-
-  const color = currentPalette[Math.floor(Math.random() * currentPalette.length)];
-  colors[i3] = color.r;
-  colors[i3 + 1] = color.g;
-  colors[i3 + 2] = color.b;
 }
 
-geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-// Custom shader
 const vertexShader = `
   attribute float size;
   varying vec3 vColor;
-  varying float vAlpha;
-
-  void main() {
+  void main(){
     vColor = color;
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    float dist = length(mvPosition.xyz);
-    vAlpha = smoothstep(20.0, 2.0, dist);
-    gl_PointSize = size * (300.0 / -mvPosition.z);
-    gl_Position = projectionMatrix * mvPosition;
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = size * (200.0 / -mv.z);
+    gl_Position = projectionMatrix * mv;
   }
 `;
-
 const fragmentShader = `
   varying vec3 vColor;
-  varying float vAlpha;
-
-  void main() {
-    vec2 uv = gl_PointCoord - 0.5;
-    float d = length(uv);
-    if (d > 0.5) discard;
-
+  void main(){
+    float d = length(gl_PointCoord - 0.5);
+    if(d > 0.5) discard;
     float glow = exp(-d * 4.0);
-    float core = smoothstep(0.15, 0.0, d);
-    float alpha = (glow * 0.6 + core * 0.4) * vAlpha;
-
+    float core = smoothstep(0.12, 0.0, d);
+    float alpha = glow * 0.5 + core * 0.5;
     gl_FragColor = vec4(vColor * (glow + core * 1.5), alpha);
   }
 `;
 
-const material = new THREE.ShaderMaterial({
-  vertexShader,
-  fragmentShader,
-  uniforms: {},
-  transparent: true,
-  depthWrite: false,
+const mat = new THREE.ShaderMaterial({
+  vertexShader, fragmentShader,
+  transparent: true, depthWrite: false,
   blending: THREE.AdditiveBlending,
   vertexColors: true,
 });
 
-const points = new THREE.Points(geometry, material);
+const points = new THREE.Points(geo, mat);
 scene.add(points);
 
-// ─── Background particles ───
-const bgCount = 500;
-const bgGeo = new THREE.BufferGeometry();
-const bgPos = new Float32Array(bgCount * 3);
-const bgCol = new Float32Array(bgCount * 3);
-const bgSiz = new Float32Array(bgCount);
+// Connection lines
+const lineGeo = new THREE.BufferGeometry();
+const linePositions = new Float32Array(300 * 6);
+lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+const lineMat = new THREE.LineBasicMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.06 });
+const lines = new THREE.LineSegments(lineGeo, lineMat);
+scene.add(lines);
 
-for (let i = 0; i < bgCount; i++) {
-  bgPos[i * 3] = (Math.random() - 0.5) * 30;
-  bgPos[i * 3 + 1] = (Math.random() - 0.5) * 30;
-  bgPos[i * 3 + 2] = (Math.random() - 0.5) * 30;
-  bgSiz[i] = Math.random() * 1.5 + 0.3;
-  const c = new THREE.Color().setHSL(Math.random(), 0.3, 0.3);
-  bgCol[i * 3] = c.r;
-  bgCol[i * 3 + 1] = c.g;
-  bgCol[i * 3 + 2] = c.b;
-}
+const clock = new THREE.Clock();
 
-bgGeo.setAttribute('position', new THREE.BufferAttribute(bgPos, 3));
-bgGeo.setAttribute('color', new THREE.BufferAttribute(bgCol, 3));
-bgGeo.setAttribute('size', new THREE.BufferAttribute(bgSiz, 1));
-
-const bgMat = new THREE.ShaderMaterial({
-  vertexShader,
-  fragmentShader,
-  transparent: true,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending,
-  vertexColors: true,
-});
-
-const bgPoints = new THREE.Points(bgGeo, bgMat);
-scene.add(bgPoints);
-
-// ─── Shape Generators ───
-function genTorus(i, total) {
-  const angle = (i / total) * Math.PI * 2;
-  const ring = (i % 300) / 300 * Math.PI * 2;
-  const R = 1.8;
-  const r = 0.6 + Math.sin(ring * 8) * 0.15;
-  return new THREE.Vector3(
-    (R + r * Math.cos(ring)) * Math.cos(angle),
-    (R + r * Math.cos(ring)) * Math.sin(angle),
-    r * Math.sin(ring)
-  );
-}
-
-function genSphere(i, total) {
-  const phi = Math.acos(1 - 2 * (i + 0.5) / total);
-  const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-  const r = 1.8 + Math.sin(phi * 6) * 0.1;
-  return new THREE.Vector3(
-    r * Math.sin(phi) * Math.cos(theta),
-    r * Math.sin(phi) * Math.sin(theta),
-    r * Math.cos(phi)
-  );
-}
-
-function genKnot(i, total) {
-  const t = (i / total) * Math.PI * 2 * 3;
-  const p = 2, q = 3;
-  const r = 0.8 + Math.sin(t * 5) * 0.1;
-  const s = 1.5;
-  return new THREE.Vector3(
-    s * (Math.cos(q * t) * (1 + r * Math.cos(p * t))),
-    s * (Math.sin(q * t) * (1 + r * Math.cos(p * t))),
-    s * r * Math.sin(p * t)
-  );
-}
-
-function genGalaxy(i, total) {
-  const arm = i % 3;
-  const dist = (i / total) * 3;
-  const angle = dist * 2 + arm * (Math.PI * 2 / 3);
-  const spread = 0.1 + dist * 0.15;
-  return new THREE.Vector3(
-    dist * Math.cos(angle) + (Math.random() - 0.5) * spread,
-    (Math.random() - 0.5) * spread * 0.3,
-    dist * Math.sin(angle) + (Math.random() - 0.5) * spread
-  );
-}
-
-function genDNA(i, total) {
-  const t = (i / total) * Math.PI * 8;
-  const strand = i % 2;
-  const r = 1.2;
-  const y = (i / total - 0.5) * 6;
-  return new THREE.Vector3(
-    r * Math.cos(t + strand * Math.PI),
-    y,
-    r * Math.sin(t + strand * Math.PI)
-  );
-}
-
-const shapeGenerators = { torus: genTorus, sphere: genSphere, knot: genKnot, galaxy: genGalaxy, dna: genDNA };
-
-// ─── Generate targets ───
-function setShape(name) {
-  const gen = shapeGenerators[name];
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const p = gen(i, PARTICLE_COUNT);
-    targets[i * 3] = p.x;
-    targets[i * 3 + 1] = p.y;
-    targets[i * 3 + 2] = p.z;
-  }
-  currentShape = name;
-  document.getElementById('shapeLabel').textContent = `● ${name.toUpperCase()} · ${PARTICLE_COUNT.toLocaleString()} particles`;
-}
-
-// Initial shape
-setShape('torus');
-
-// ─── Morph trigger ───
-window.morphTo = function(name) {
-  setShape(name);
-  // Update button states
-  document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('btn-' + name);
-  if (btn) btn.classList.add('active');
-};
-
-window.toggleAutoRotate = function() {
-  autoRotate = !autoRotate;
-  document.getElementById('btn-auto').textContent = `Auto: ${autoRotate ? 'ON' : 'OFF'}`;
-  document.getElementById('btn-auto').classList.toggle('active', autoRotate);
-};
-
-// Click to cycle shapes
-const shapeList = ['torus', 'sphere', 'knot', 'galaxy', 'dna'];
-let shapeIndex = 0;
-
-canvas.addEventListener('click', () => {
-  shapeIndex = (shapeIndex + 1) % shapeList.length;
-  morphTo(shapeList[shapeIndex]);
-});
-
-// ─── Mouse ───
-canvas.addEventListener('mousemove', (e) => {
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(mouse, camera);
-  const intersect = new THREE.Vector3();
-  raycaster.ray.intersectPlane(plane, intersect);
-  if (intersect) mouse3D.copy(intersect);
-});
-
-canvas.addEventListener('mouseleave', () => {
-  mouse3D.set(9999, 9999, 9999);
-});
-
-// Touch
-canvas.addEventListener('touchmove', (e) => {
-  e.preventDefault();
-  const t = e.touches[0];
-  mouse.x = (t.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  const intersect = new THREE.Vector3();
-  raycaster.ray.intersectPlane(plane, intersect);
-  if (intersect) mouse3D.copy(intersect);
-}, { passive: false });
-
-canvas.addEventListener('touchend', () => {
-  mouse3D.set(9999, 9999, 9999);
-});
-
-// ─── FPS counter ───
-let frameCount = 0;
-let lastFpsTime = 0;
-
-// ─── Animation Loop ───
 function animate() {
   requestAnimationFrame(animate);
-  const time = clock.getElapsedTime();
-  const delta = Math.min(clock.getDelta(), 0.05);
+  const t = clock.getElapsedTime();
 
-  // FPS
-  frameCount++;
-  if (time - lastFpsTime > 0.5) {
-    const fps = Math.round(frameCount / (time - lastFpsTime));
-    document.getElementById('fps').textContent = `${fps} FPS`;
-    frameCount = 0;
-    lastFpsTime = time;
-  }
+  mouse.lerp(targetMouse, 0.05);
 
-  // Auto color shift
-  const hueShift = time * COLOR_SPEED;
+  points.rotation.y = mouse.x * 0.3 + t * 0.05;
+  points.rotation.x = mouse.y * 0.2 + Math.sin(t * 0.2) * 0.1;
 
-  // Update particles
-  const pos = geometry.attributes.position.array;
-  const col = geometry.attributes.color.array;
-
-  for (let i = 0; i < PARTICLE_COUNT; i++) {
+  // Update particle positions (subtle floating)
+  const p = geo.attributes.position.array;
+  for (let i = 0; i < COUNT; i++) {
     const i3 = i * 3;
+    p[i3] += Math.sin(t * 0.3 + phases[i]) * 0.0008;
+    p[i3+1] += Math.cos(t * 0.2 + phases[i] * 1.3) * 0.0008;
+    p[i3+2] += Math.sin(t * 0.4 + phases[i] * 0.7) * 0.0005;
+  }
+  geo.attributes.position.needsUpdate = true;
 
-    // Spring toward target
-    const dx = targets[i3] - pos[i3];
-    const dy = targets[i3 + 1] - pos[i3 + 1];
-    const dz = targets[i3 + 2] - pos[i3 + 2];
-
-    velocities[i3] += dx * MORPH_SPEED;
-    velocities[i3 + 1] += dy * MORPH_SPEED;
-    velocities[i3 + 2] += dz * MORPH_SPEED;
-
-    // Mouse repulsion
-    const mx = pos[i3] - mouse3D.x;
-    const my = pos[i3 + 1] - mouse3D.y;
-    const mz = pos[i3 + 2] - mouse3D.z;
-    const md = Math.sqrt(mx * mx + my * my + mz * mz);
-
-    if (md < 1.5) {
-      const force = (1.5 - md) * MOUSE_FORCE;
-      velocities[i3] += (mx / md) * force;
-      velocities[i3 + 1] += (my / md) * force;
-      velocities[i3 + 2] += (mz / md) * force;
+  // Update connection lines (nearest pairs)
+  let lineIdx = 0;
+  const lp = lineGeo.attributes.position.array;
+  const maxDist = 0.5;
+  for (let i = 0; i < COUNT && lineIdx < 300; i += 8) {
+    for (let j = i + 8; j < COUNT && lineIdx < 300; j += 8) {
+      const dx = p[i*3]-p[j*3], dy = p[i*3+1]-p[j*3+1], dz = p[i*3+2]-p[j*3+2];
+      const d = dx*dx+dy*dy+dz*dz;
+      if (d < maxDist * maxDist) {
+        lp[lineIdx*6] = p[i*3]; lp[lineIdx*6+1] = p[i*3+1]; lp[lineIdx*6+2] = p[i*3+2];
+        lp[lineIdx*6+3] = p[j*3]; lp[lineIdx*6+4] = p[j*3+1]; lp[lineIdx*6+5] = p[j*3+2];
+        lineIdx++;
+      }
     }
-
-    // Damping
-    velocities[i3] *= DAMPING;
-    velocities[i3 + 1] *= DAMPING;
-    velocities[i3 + 2] *= DAMPING;
-
-    // Apply velocity
-    pos[i3] += velocities[i3];
-    pos[i3 + 1] += velocities[i3 + 1];
-    pos[i3 + 2] += velocities[i3 + 2];
-
-    // Subtle floating
-    pos[i3] += Math.sin(time * 0.5 + phases[i]) * 0.001;
-    pos[i3 + 1] += Math.cos(time * 0.3 + phases[i] * 1.3) * 0.001;
   }
-
-  // Rotate
-  if (autoRotate) {
-    points.rotation.y += 0.002;
-    points.rotation.x = Math.sin(time * 0.1) * 0.1;
+  // Clear remaining
+  for (let i = lineIdx; i < 300; i++) {
+    lp[i*6]=0;lp[i*6+1]=0;lp[i*6+2]=0;lp[i*6+3]=0;lp[i*6+4]=0;lp[i*6+5]=0;
   }
-
-  // Background drift
-  bgPoints.rotation.y += 0.0005;
-  bgPoints.rotation.x += 0.0002;
-
-  geometry.attributes.position.needsUpdate = true;
+  lineGeo.attributes.position.needsUpdate = true;
 
   renderer.render(scene, camera);
 }
 
-// ─── Resize ───
+animate();
+
+// Mouse tracking for 3D
+document.addEventListener('mousemove', (e) => {
+  targetMouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  targetMouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+</script>
 
-// ─── Start ───
-animate();
+<script>
+// ─── Cursor Glow ───
+const glow = document.getElementById('cursorGlow');
+document.addEventListener('mousemove', (e) => {
+  glow.style.left = e.clientX + 'px';
+  glow.style.top = e.clientY + 'px';
+});
 
-// Initial morph animation (start from center)
-for (let i = 0; i < PARTICLE_COUNT; i++) {
-  const i3 = i * 3;
-  positions[i3] = (Math.random() - 0.5) * 0.5;
-  positions[i3 + 1] = (Math.random() - 0.5) * 0.5;
-  positions[i3 + 2] = (Math.random() - 0.5) * 0.5;
+// ─── Scroll Reveal ───
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ─── Card 3D Tilt ───
+document.querySelectorAll('.service-card, .portfolio-card').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    const rotateX = (y - 0.5) * -10;
+    const rotateY = (x - 0.5) * 10;
+    card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+    card.style.setProperty('--mouse-x', (x * 100) + '%');
+    card.style.setProperty('--mouse-y', (y * 100) + '%');
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale(1)';
+  });
+});
+
+// ─── Counter Animation ───
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      const suffix = target > 20 ? '+' : '+';
+      let current = 0;
+      const step = Math.max(1, Math.floor(target / 40));
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= target) {
+          current = target;
+          clearInterval(interval);
+        }
+        el.textContent = current + suffix;
+      }, 30);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.stat-number').forEach(el => counterObserver.observe(el));
+
+// ─── Smooth Scroll ───
+function smoothScroll(selector) {
+  const el = document.querySelector(selector);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+window.smoothScroll = smoothScroll;
 
-// Set first button active
-document.getElementById('btn-torus').classList.add('active');
+// ─── Button Ripple + Particle Burst ───
+document.querySelectorAll('.btn-primary, .cta-btn, .nav-cta').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    // Ripple
+    const rect = this.getBoundingClientRect();
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    ripple.style.left = (e.clientX - rect.left) + 'px';
+    ripple.style.top = (e.clientY - rect.top) + 'px';
+    ripple.style.width = ripple.style.height = '10px';
+    this.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+
+    // Particle burst
+    const colors = ['#8b5cf6', '#06b6d4', '#f43f5e', '#10b981', '#f59e0b'];
+    for (let i = 0; i < 12; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'burst-particle';
+      const angle = (Math.PI * 2 / 12) * i + (Math.random() - 0.5) * 0.5;
+      const dist = 60 + Math.random() * 80;
+      particle.style.left = e.clientX + 'px';
+      particle.style.top = e.clientY + 'px';
+      particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+      particle.style.setProperty('--bx', Math.cos(angle) * dist + 'px');
+      particle.style.setProperty('--by', Math.sin(angle) * dist + 'px');
+      document.body.appendChild(particle);
+      setTimeout(() => particle.remove(), 800);
+    }
+  });
+});
+
+// ─── Nav scroll effect ───
+let lastScroll = 0;
+window.addEventListener('scroll', () => {
+  const nav = document.querySelector('nav');
+  const scrollY = window.scrollY;
+  if (scrollY > 100) {
+    nav.style.background = 'rgba(10,10,10,0.85)';
+    nav.style.padding = '1rem 3rem';
+  } else {
+    nav.style.background = 'rgba(10,10,10,0.6)';
+    nav.style.padding = '1.5rem 3rem';
+  }
+  lastScroll = scrollY;
+});
 </script>
 
 </body>
